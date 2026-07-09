@@ -51,20 +51,26 @@ function normalizeUrl(baseUrl, suffix) {
   return `${raw.replace(/\/+$/, '')}${suffix}`
 }
 
-function buildServerEntries(urls) {
+function buildServerEntries(urls, platform) {
   const entries = SERVER_DEFINITIONS.flatMap((server) => {
     const normalized = normalizeUrl(urls[server.key], server.suffix)
     if (!normalized) return []
 
-    return [
-      [
-        server.name,
-        {
-          type: 'http',
-          url: normalized,
-        },
-      ],
-    ]
+    // Claude Desktop's claude_desktop_config.json does not support
+    // "type": "http" / "url" entries — it only supports stdio servers.
+    // Bridge remote HTTP servers through mcp-remote instead.
+    const definition =
+      platform === 'claude'
+        ? {
+            command: 'npx',
+            args: ['mcp-remote', normalized],
+          }
+        : {
+            type: 'http',
+            url: normalized,
+          }
+
+    return [[server.name, definition]]
   })
 
   return Object.fromEntries(entries)
@@ -109,7 +115,7 @@ function App() {
   }
 
   const handleGenerate = () => {
-    const servers = buildServerEntries(urls)
+    const servers = buildServerEntries(urls, platform)
     const payload = createPlatformPayload(platform, servers)
     setOutput(JSON.stringify(payload, null, 2))
   }
