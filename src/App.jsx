@@ -41,14 +41,31 @@ const SERVER_DEFINITIONS = [
   },
 ]
 
+// Detects whether a URL's *path* (not its query string or fragment) already
+// ends in /mcp or /mcp/stream, and appends the suffix into the path rather
+// than onto the raw string. Using the URL API avoids a prior bug where a
+// URL like ".../mcp?token=abc" was not recognized as already-suffixed
+// (the check anchored on the end of the whole string) and got a second
+// "/mcp" appended after the query string.
 function normalizeUrl(baseUrl, suffix) {
   const raw = baseUrl.trim()
   if (!raw) return ''
 
-  const hasMcpPath = /\/mcp(\/stream)?\/?$/i.test(raw)
+  let parsed
+  try {
+    parsed = new URL(raw)
+  } catch {
+    // Not a fully-qualified URL (e.g. missing protocol) — fall back to
+    // simple trailing-slash + suffix handling on the raw string.
+    if (/\/mcp(\/stream)?\/?$/i.test(raw)) return raw
+    return `${raw.replace(/\/+$/, '')}${suffix}`
+  }
+
+  const hasMcpPath = /\/mcp(\/stream)?\/?$/i.test(parsed.pathname)
   if (hasMcpPath) return raw
 
-  return `${raw.replace(/\/+$/, '')}${suffix}`
+  parsed.pathname = `${parsed.pathname.replace(/\/+$/, '')}${suffix}`
+  return parsed.toString()
 }
 
 function buildServerEntries(urls, platform) {
