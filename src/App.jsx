@@ -14,6 +14,7 @@ const CATEGORY_ORDER = [
   'IDE',
   'IDE extension',
   'Cloud IDE',
+  'Work tracking (extra)',
   'API client (extra)',
 ]
 
@@ -287,6 +288,48 @@ const CLIENTS = [
     kind: 'ui-connector',
     unpublished: true,
     targetFile: 'Replit Agent → Integrations (browser UI, no file)',
+  },
+
+  // Not part of Katalon's 36-client catalog, but requested separately:
+  // Jira and Azure DevOps can themselves act as MCP *clients* (consuming
+  // an external MCP server), distinct from being configured as MCP
+  // *servers* in section 1 above.
+  //
+  // Jira: Atlassian's Rovo platform genuinely supports adding external
+  // MCP servers as a site admin, and Rovo Dev CLI reads a standard
+  // mcpServers JSON file. See:
+  // https://support.atlassian.com/organization-administration/docs/add-an-external-mcp-server-from-atlassian-administration/
+  // https://support.atlassian.com/rovo/docs/connect-to-an-mcp-server-in-rovo-dev-cli/
+  {
+    id: 'jira-rovo-admin',
+    label: 'Jira (Atlassian Rovo — admin UI)',
+    category: 'Work tracking (extra)',
+    kind: 'ui-connector',
+    targetFile:
+      'Atlassian Administration → Apps → Connected apps → Add external MCP server (site admin UI)',
+  },
+  {
+    id: 'jira-rovo-dev-cli',
+    label: 'Jira (Rovo Dev CLI)',
+    category: 'Work tracking (extra)',
+    kind: 'json-mcpServers-url',
+    targetFile: '~/.rovodev/mcp.json',
+  },
+  // Azure DevOps: ADO itself doesn't publish a documented "add external
+  // MCP server" client UI the way Jira/Rovo does — as of this writing,
+  // Azure DevOps is generally the MCP *server* (its own remote/local MCP
+  // server), and the clients that consume other MCP servers alongside an
+  // ADO workflow are Visual Studio / VS Code (already covered above) or
+  // a GitHub Copilot cloud agent tied to the repo. This entry is flagged
+  // unpublished since there's no ADO-native connector UI to point to.
+  {
+    id: 'azure-devops-copilot-agent',
+    label: 'Azure DevOps (via GitHub Copilot cloud agent config)',
+    category: 'Work tracking (extra)',
+    kind: 'json-mcpServers-url',
+    unpublished: true,
+    targetFile:
+      "the repository's Copilot cloud agent MCP configuration on GitHub.com (Settings → Copilot → Coding agent → MCP configuration) — ADO has no native \"add external MCP server\" UI of its own",
   },
 
   // Not part of Katalon's 36-client catalog, but a useful extra: lets you
